@@ -52,11 +52,13 @@ int main(int argc, char **argv) {
 	  input_file  = std::string(argv[1]);
       template_file = std::string(argv[2]);
 	  output_file = "HW4_output.png";
+    reference_file ="HW4_reference.png";
 	  break;
 	case 4:
 	  input_file  = std::string(argv[1]);
-      template_file = std::string(argv[2]);
+    template_file = std::string(argv[2]);
 	  output_file = std::string(argv[3]);
+    reference_file = "HW4_reference.png";
 	  break;
 	default:
           std::cerr << "Usage: ./HW4 input_file template_file [output_filename]" << std::endl;
@@ -116,6 +118,20 @@ int main(int argc, char **argv) {
 						numElems);
 
   //postProcess(valsPtr, posPtr, numElems, reference_file);
+  thrust::device_vector<unsigned int> d_referenceVals(
+      h_outputVals
+  );
+
+  thrust::device_vector<unsigned int> d_referencePos(
+      h_outputPos
+  );
+
+  postProcess(
+      thrust::raw_pointer_cast(d_referenceVals.data()),
+      thrust::raw_pointer_cast(d_referencePos.data()),
+      numElems,
+      reference_file
+  );
 
   //compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
@@ -134,6 +150,16 @@ int main(int argc, char **argv) {
   checkCudaErrors(cudaFree(inputPos));
   checkCudaErrors(cudaFree(outputVals));
   checkCudaErrors(cudaFree(outputPos));
+
+  std::cout << "Generating difference image..." << std::endl;
+
+  compareImages(
+      reference_file,
+      output_file,
+      useEpsCheck,
+      perPixelError,
+      globalError
+  );
 
   return 0;
 }

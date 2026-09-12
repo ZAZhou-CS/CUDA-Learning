@@ -5,6 +5,9 @@
 #include "utils.h"
 #include "timer.h"
 #include <cstdio>
+#include <thrust/random.h>
+#include <algorithm>
+#include <chrono>
 #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
 #else
@@ -51,7 +54,7 @@ int main(void)
 
   thrust::minstd_rand rng;
 
-  thrust::random::experimental::normal_distribution<float> normalDist((float)mean, stddev);
+  thrust::random::normal_distribution<float> normalDist((float)mean, stddev);
 
   // Generate the random values
   for (size_t i = 0; i < numElems; ++i) {
@@ -82,11 +85,41 @@ int main(void)
   // copy the student-computed histogram back to the host
   checkCudaErrors(cudaMemcpy(h_studentHisto, d_histo, sizeof(unsigned int) * numBins, cudaMemcpyDeviceToHost));
 
-  //generate reference for the given mean
-  reference_calculation(vals, h_refHisto, numBins, numElems);
+  // //generate reference for the given mean
+  // reference_calculation(vals, h_refHisto, numBins, numElems);
 
-  //Now do the comparison
-  checkResultsExact(h_refHisto, h_studentHisto, numBins);
+  // //Now do the comparison
+  // checkResultsExact(h_refHisto, h_studentHisto, numBins);
+  // Generate reference histogram on CPU
+  auto cpuStart = std::chrono::high_resolution_clock::now();
+
+  reference_calculation(
+      vals,
+      h_refHisto,
+      numBins,
+      numElems
+  );
+
+  auto cpuEnd = std::chrono::high_resolution_clock::now();
+
+  double cpuTime =
+      std::chrono::duration<double, std::milli>(
+          cpuEnd - cpuStart
+      ).count();
+
+  std::cout << "CPU reference calculation: "
+            << cpuTime
+            << " msecs." << std::endl;
+
+
+  // Compare CPU and GPU results
+  checkResultsExact(
+      h_refHisto,
+      h_studentHisto,
+      numBins
+  );
+
+  std::cout << "GPU result: Correct!" << std::endl;
 
   delete[] h_vals;
   delete[] h_refHisto;

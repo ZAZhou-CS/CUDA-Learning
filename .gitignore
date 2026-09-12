@@ -1,24 +1,24 @@
-# Object files
+[200~# Compiled object files
 *.o
 
-# Libraries
-*.lib
-*.a
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
 # Executables
-*.exe
-*.out
-*.app
-
-# OS X stuff
-.DS_Store
-
-build
-bin
-
+# HW1
+# HW2
+# HW3
+# HW4
+# HW5
+# HW6
+#
+# # CUDA / build artifacts
+# build/
+# bin/
+#
+# # Temporary output images
+# *.png
+#
+# # IDE files
+# .vscode/
+# .idea/
+#
+# # OS files
+# .DS_Store

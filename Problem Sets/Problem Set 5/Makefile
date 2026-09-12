@@ -1,14 +1,26 @@
-NVCC=nvcc
-NVCC_OPTS=-O3 -arch=sm_20 -Xcompiler -Wall -Xcompiler -Wextra -m64
+NVCC = nvcc
+CXX  = g++
 
-histo: main.cu reference_calc.o student.o Makefile
-	nvcc -o HW5 main.cu reference_calc.o student.o $(NVCC_OPTS)
+CUDA_ARCH = sm_75
+
+NVCC_OPTS = -O3 -arch=$(CUDA_ARCH) -Xcompiler -Wall -Xcompiler -Wextra -m64
+CXX_OPTS  = -O3 -Wall -Wextra -m64
+
+TARGET = HW5
+
+all: $(TARGET)
+
+$(TARGET): main.o reference_calc.o student.o
+	$(NVCC) -o $(TARGET) main.o reference_calc.o student.o $(NVCC_OPTS)
+
+main.o: main.cu
+	$(NVCC) -c main.cu $(NVCC_OPTS)
 
 student.o: student.cu
-	nvcc -c student.cu $(NVCC_OPTS)
+	$(NVCC) -c student.cu $(NVCC_OPTS)
 
 reference_calc.o: reference_calc.cpp reference_calc.h
-	g++ -c reference_calc.cpp -I $(OPENCV_INCLUDEPATH) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
+	$(CXX) -c reference_calc.cpp $(CXX_OPTS)
 
 clean:
-	rm -f *.o hw *.bin
+	rm -f *.o $(TARGET)

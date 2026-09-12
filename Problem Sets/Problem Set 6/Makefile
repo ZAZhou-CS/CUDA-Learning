@@ -1,63 +1,102 @@
-NVCC=/usr/local/cuda-5.0/bin/nvcc
-#NVCC=nvcc
+# =========================
+# Compiler
+# =========================
+NVCC = nvcc
+CXX  = g++
 
-###################################
-# These are the default install   #
-# locations on most linux distros #
-###################################
+# =========================
+# CUDA
+# RTX 2060 -> Compute Capability 7.5
+# =========================
+CUDA_ARCH = sm_75
 
-OPENCV_LIBPATH=/usr/lib
-OPENCV_INCLUDEPATH=/usr/include
+NVCC_FLAGS = -O3 -arch=$(CUDA_ARCH) -Xcompiler -Wall -Xcompiler -Wextra -m64
+CXX_FLAGS  = -O3 -Wall -Wextra -m64
 
-###################################################
-# On Macs the default install locations are below #
-###################################################
+# =========================
+# OpenCV
+# =========================
+OPENCV_INCLUDEPATH = /usr/include/opencv4
+OPENCV_LIBPATH     = /usr/lib/x86_64-linux-gnu
 
-#OPENCV_LIBPATH=/usr/local/lib
-#OPENCV_INCLUDEPATH=/usr/local/include
+OPENCV_LIBS = -lopencv_core \
+              -lopencv_imgproc \
+              -lopencv_highgui \
+              -lopencv_imgcodecs
 
-OPENCV_LIBS=-lopencv_core -lopencv_imgproc -lopencv_highgui
+# =========================
+# Target
+# =========================
+TARGET = HW6
 
-CUDA_INCLUDEPATH=/usr/local/cuda-5.0/include
-# CUDA_INCLUDEPATH=/usr/local/cuda/lib64/include
-# CUDA_INCLUDEPATH=/usr/local/cuda-5.0/include
-# CUDA_INCLUDEPATH=/Developer/NVIDIA/CUDA-5.0/include
+OBJS = main.o \
+       student_func.o \
+       HW6.o \
+       loadSaveImage.o \
+       compare.o \
+       reference_calc.o
 
-######################################################
-# On Macs the default install locations are below    #
-# ####################################################
+# =========================
+# Default target
+# =========================
+all: $(TARGET)
 
-#CUDA_INCLUDEPATH=/usr/local/cuda/include
-#CUDA_LIBPATH=/usr/local/cuda/lib
-CUDA_LIBPATH=/usr/local/cuda-5.0/lib64
+# =========================
+# Link
+# =========================
+$(TARGET): $(OBJS)
+	$(NVCC) -o $@ $(OBJS) \
+		-L$(OPENCV_LIBPATH) $(OPENCV_LIBS)
 
-#no warnings otherwise thrust explodes output
-
-NVCC_OPTS=-O3 -arch=sm_20 -m64
-
-GCC_OPTS=-O3 -m64
-
-student: main.o student_func.o HW6.o loadSaveImage.o compare.o reference_calc.o Makefile
-	$(NVCC) -o HW6 main.o student_func.o HW6.o loadSaveImage.o compare.o reference_calc.o -L $(OPENCV_LIBPATH) $(OPENCV_LIBS) $(NVCC_OPTS)
-
+# =========================
+# main.cpp
+# =========================
 main.o: main.cpp timer.h utils.h
-	g++ -c main.cpp $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
+	$(CXX) -c main.cpp $(CXX_FLAGS) \
+		-I$(OPENCV_INCLUDEPATH) \
+		-I/usr/local/cuda/include
 
+# =========================
+# HW6.cu
+# =========================
 HW6.o: HW6.cu loadSaveImage.h utils.h
-	$(NVCC) -c HW6.cu -I $(OPENCV_INCLUDEPATH) $(NVCC_OPTS)
+	$(NVCC) -c HW6.cu $(NVCC_FLAGS) \
+		-I$(OPENCV_INCLUDEPATH)
 
+# =========================
+# student_func.cu
+# =========================
+student_func.o: student_func.cu utils.h
+	$(NVCC) -c student_func.cu $(NVCC_FLAGS) \
+		-I$(OPENCV_INCLUDEPATH)
+
+# =========================
+# loadSaveImage.cpp
+# =========================
 loadSaveImage.o: loadSaveImage.cpp loadSaveImage.h
-	g++ -c loadSaveImage.cpp -I $(OPENCV_INCLUDEPATH) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
+	$(CXX) -c loadSaveImage.cpp $(CXX_FLAGS) \
+		-I$(OPENCV_INCLUDEPATH) \
+		-I/usr/local/cuda/include
 
-student_func.o: student_func.cu reference_calc.cpp utils.h
-	$(NVCC) -c student_func.cu $(NVCC_OPTS)
-
+# =========================
+# compare.cpp
+# =========================
 compare.o: compare.cpp compare.h
-	g++ -c compare.cpp -I $(OPENCV_INCLUDEPATH) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
+	$(CXX) -c compare.cpp $(CXX_FLAGS) \
+		-I$(OPENCV_INCLUDEPATH) \
+		-I/usr/local/cuda/include
 
+# =========================
+# reference_calc.cpp
+# =========================
 reference_calc.o: reference_calc.cpp reference_calc.h
-	g++ -c reference_calc.cpp -I $(OPENCV_INCLUDEPATH) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
+	$(CXX) -c reference_calc.cpp $(CXX_FLAGS) \
+		-I$(OPENCV_INCLUDEPATH) \
+		-I/usr/local/cuda/include
 
+# =========================
+# Clean
+# =========================
 clean:
-	rm -f *.o hw
-	find . -type f -name '*.png' | grep -v source.png | grep -v destination.png | xargs rm -f
+	rm -f *.o $(TARGET)
+	rm -f *.png

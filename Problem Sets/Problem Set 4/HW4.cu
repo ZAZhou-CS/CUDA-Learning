@@ -12,7 +12,7 @@
 #include <thrust/extrema.h>
 #include <thrust/iterator/constant_iterator.h>
 #include <thrust/sequence.h>
-
+#include <thrust/host_vector.h>
 #include "loadSaveImage.h"
 #include <stdio.h>
 
@@ -373,9 +373,9 @@ void postProcess(const unsigned int* const outputVals,
 
   saveImageRGBA(&h_Img[0], numRowsImg, numColsImg, output_file);
 
-  //Clear the global vectors otherwise something goes wrong trying to free them
-  d_red.clear(); d_red.shrink_to_fit();
-  d_blue.clear(); d_blue.shrink_to_fit();
-  d_green.clear(); d_green.shrink_to_fit();
+//   //Clear the global vectors otherwise something goes wrong trying to free them
+//   d_red.clear(); d_red.shrink_to_fit();
+//   d_blue.clear(); d_blue.shrink_to_fit();
+//   d_green.clear(); d_green.shrink_to_fit();
 }
 

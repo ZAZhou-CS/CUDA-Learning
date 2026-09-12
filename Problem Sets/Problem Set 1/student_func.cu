@@ -32,12 +32,27 @@
 //so that the entire image is processed.
 
 #include "utils.h"
-
+//写这个
 __global__
 void rgba_to_greyscale(const uchar4* const rgbaImage,
                        unsigned char* const greyImage,
                        int numRows, int numCols)
 {
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (row >= numRows || col >= numCols)
+        return;
+
+    int index = row * numCols + col;
+
+    uchar4 pixel = rgbaImage[index];
+
+    float gray = 0.299f * pixel.x
+               + 0.587f * pixel.y
+               + 0.114f * pixel.z;
+
+    greyImage[index] = gray;
   //TODO
   //Fill in the kernel to convert from color to greyscale
   //the mapping from components of a uchar4 to RGBA is:
@@ -55,12 +70,28 @@ void rgba_to_greyscale(const uchar4* const rgbaImage,
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
                             unsigned char* const d_greyImage, size_t numRows, size_t numCols)
 {
-  //You must fill in the correct sizes for the blockSize and gridSize
-  //currently only one block with one thread is being launched
-  const dim3 blockSize(1, 1, 1);  //TODO
-  const dim3 gridSize( 1, 1, 1);  //TODO
-  rgba_to_greyscale<<<gridSize, blockSize>>>(d_rgbaImage, d_greyImage, numRows, numCols);
+  // //You must fill in the correct sizes for the blockSize and gridSize
+  // //currently only one block with one thread is being launched
+  // const dim3 blockSize(1, 1, 1);  //TODO
+  // const dim3 gridSize( 1, 1, 1);  //TODO
+  // rgba_to_greyscale<<<gridSize, blockSize>>>(d_rgbaImage, d_greyImage, numRows, numCols);
   
-  cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+  // cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+      const dim3 blockSize(16, 16);
+
+    const dim3 gridSize(
+        (numCols + blockSize.x - 1) / blockSize.x,
+        (numRows + blockSize.y - 1) / blockSize.y
+    );
+
+    rgba_to_greyscale<<<gridSize, blockSize>>>(
+        d_rgbaImage,
+        d_greyImage,
+        numRows,
+        numCols
+    );
+
+    cudaDeviceSynchronize();
+    checkCudaErrors(cudaGetLastError());
 
 }
